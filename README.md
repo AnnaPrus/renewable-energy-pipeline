@@ -80,7 +80,7 @@ Raw CSV → Ingestion → Cleaning → Transformation → Data Lake (GCP) → Da
 ---
 
 ## 📂 Project Structure
-
+```text
 renewable-energy-pipeline/
 │
 ├── data/
@@ -99,7 +99,7 @@ renewable-energy-pipeline/
 │
 ├── README.md
 └── requirements.txt
-
+```
 ---
 
 ## 📊 Expected Output
