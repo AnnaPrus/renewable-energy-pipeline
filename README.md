@@ -10,6 +10,20 @@ To design and implement a scalable data pipeline that enables analysis of how re
 
 ---
 
+## 📚 Table of Contents
+
+- [Overview](#-overview)  
+- [Goal](#-goal)  
+- [Problem Statement](#-problem-statement)  
+- [Architecture](#-architecture)  
+- [Tech Stack](#-tech-stack)  
+- [Pipeline Steps](#-pipeline-steps)  
+- [Project Structure](#-project-structure)  
+- [Expected Output](#-expected-output)  
+- [Future Improvements](#-future-improvements)  
+
+---
+
 ## ❓ Problem Statement
 This project aims to answer:
 
@@ -103,17 +117,3 @@ renewable-energy-pipeline/
 - Implement real-time data ingestion  
 - Improve data quality checks  
 - Add anomaly detection  
-
----
-
-## 📚 Table of Contents
-
-- Overview  
-- Goal  
-- Problem Statement  
-- Architecture  
-- Tech Stack  
-- Pipeline Steps  
-- Project Structure  
-- Expected Output  
-- Future Improvements  
