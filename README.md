@@ -35,20 +35,33 @@ This project aims to answer:
 ---
 
 ## 🏗️ Architecture
-Raw CSV → Ingestion → Cleaning → Transformation → Data Lake (GCP) → Data Warehouse (BigQuery) → Visualization
+The pipeline follows a modern data engineering architecture with clear separation of responsibilities between orchestration, storage, and transformation layers:
+
+External Data Source (CSV)
+        ↓
+Airflow (Ingestion & Orchestration)
+        ↓
+Google Cloud Storage (Data Lake - Raw Layer)
+        ↓
+BigQuery (Raw Tables)
+        ↓
+dbt (Staging & Transformations)
+        ↓
+BigQuery (Analytics Tables)
+        ↓
+Looker Studio (Visualization)
 
 ---
 
 ## ⚙️ Tech Stack
 
-- **Cloud Platform:** Google Cloud Platform (GCP)
-- **Data Lake:** Google Cloud Storage (GCS)
+- **Orchestration:** Apache Airflow  
+- **Programming Language:** Python (Pandas)  
+- **Data Lake:** Google Cloud Storage (GCS)  
 - **Data Warehouse:** BigQuery  
-- **Orchestration:** Airflow  
-- **Processing:** PySpark / Pandas  
-- **Transformation:** dbt (optional)  
-- **Infrastructure:** Terraform  
+- **Transformation:** dbt  
 - **Containerization:** Docker  
+- **Infrastructure as Code:** Terraform  
 - **Visualization:** Looker Studio  
 
 ---
