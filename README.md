@@ -96,22 +96,46 @@ Looker Studio (Visualization)
 ```text
 renewable-energy-pipeline/
 │
-├── data/
-│ ├── raw/
-│ ├── processed/
+├── airflow/
+│   └── dags/
+│       └── energy_pipeline.py          # Main Airflow DAG
+│
+├── dbt/
+│   └── energy_project/
+│       ├── models/
+│       │   ├── staging/
+│       │   │   └── stg_energy.sql      # Cleaned raw data
+│       │   └── marts/
+│       │       └── energy_metrics.sql  # Aggregated metrics
+│       │
+│       ├── seeds/                      # Optional static data
+│       ├── tests/                      # dbt tests
+│       ├── dbt_project.yml
+│       └── profiles.yml
 │
 ├── src/
-│ ├── ingest.py
-│ ├── transform.py
-│ ├── load.py
+│   ├── ingest.py                       # Data download logic
+│   ├── validate.py                     # Data validation checks
+│   └── utils.py                        # Helper functions
 │
-├── airflow/
+├── data/
+│   ├── raw/                            # Local raw files (optional)
+│   └── processed/                      # Local processed files
+│
 ├── terraform/
-├── docker/
-├── notebooks/
+│   ├── main.tf                         # GCP resources (GCS, BigQuery)
+│   └── variables.tf
 │
-├── README.md
-└── requirements.txt
+├── docker/
+│   └── Dockerfile                      # Custom container (optional)
+│
+├── notebooks/
+│   └── exploration.ipynb               # EDA (not part of pipeline)
+│
+├── docker-compose.yaml                 # Orchestration (Airflow, dbt, etc.)
+├── requirements.txt                    # Python dependencies
+├── .env                                # Environment variables (not committed)
+└── README.md
 ```
 ---
 
