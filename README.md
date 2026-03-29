@@ -118,10 +118,6 @@ renewable-energy-pipeline/
 │   ├── validate.py                     # Data validation checks
 │   └── utils.py                        # Helper functions
 │
-├── data/
-│   ├── raw/                            # Local raw files (optional)
-│   └── processed/                      # Local processed files
-│
 ├── terraform/
 │   ├── main.tf                         # GCP resources (GCS, BigQuery)
 │   └── variables.tf
