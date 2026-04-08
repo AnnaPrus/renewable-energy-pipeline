@@ -1,0 +1,9 @@
+version: 2
+
+sources:
+  - name: energy
+    database: energy-pipeline-492713
+    schema: energy_pipeline_dataset
+    tables:
+      - name: energy_clean
+        description: "Raw energy data from BigQuery"

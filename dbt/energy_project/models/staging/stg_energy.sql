@@ -1,5 +1,5 @@
 select
-    cast(utc_timestamp as timestamp) as timestamp,
+    cast(utc_timestamp as timestamp) as utc_timestamp,
 
     -- Germany
     DE_load_actual_entsoe_transparency as load_de,
@@ -11,4 +11,4 @@ select
     AT_solar_generation_actual as solar_at,
     AT_wind_onshore_generation_actual as wind_at
 
-from {{ source('energy', 'raw') }}
+from {{ source('energy', 'energy_clean') }}
