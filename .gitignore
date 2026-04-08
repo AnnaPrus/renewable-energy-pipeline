@@ -31,3 +31,5 @@ dbt/energy_project/logs/
 # OS / misc
 # -------------------
 .DS_Store
+
+*.json

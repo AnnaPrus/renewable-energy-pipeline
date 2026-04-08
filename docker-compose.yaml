@@ -7,9 +7,11 @@ services:
     user: "${AIRFLOW_UID:-50000}:0"
     environment:
       - AIRFLOW__CORE__LOAD_EXAMPLES=False
+      - GOOGLE_APPLICATION_CREDENTIALS=/opt/airflow/gcp-credentials.json
     volumes:
       - ./airflow/dags:/opt/airflow/dags
       - ./data:/opt/airflow/data
+      - ./airflow/gcp-credentials.json:/opt/airflow/gcp-credentials.json:ro
     ports:
       - "8080:8080"
     command: >
