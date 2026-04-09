@@ -6,6 +6,8 @@ import pendulum
 from airflow.providers.google.cloud.transfers.local_to_gcs import LocalFilesystemToGCSOperator
 from airflow.providers.google.cloud.transfers.gcs_to_bigquery import GCSToBigQueryOperator
 import pandas as pd
+from airflow.models import Variable
+import logging
 
 # -----------------------
 # Config
@@ -21,10 +23,16 @@ LOCAL_PATH = os.path.join(DATA_DIR, FILE_NAME)
 CLEAN_FILE_NAME = "energy_clean.csv"
 CLEAN_PATH = os.path.join(DATA_DIR, CLEAN_FILE_NAME)
 
-BUCKET_NAME = "energy-pipeline-bucket"
-PROJECT_ID = "energy-pipeline-492713"
-DATASET_ID = "energy_pipeline_dataset"
+BUCKET_NAME = Variable.get("gcp_bucket", default_var="energy-pipeline-bucket")
+PROJECT_ID = Variable.get("gcp_project", default_var="energy-pipeline-492713")
+DATASET_ID = Variable.get("bq_dataset", default_var="energy_pipeline_dataset")
+
 TABLE_ID = "energy_clean"
+
+default_args = {
+    "retries": 2,
+    "retry_delay": pendulum.duration(minutes=5),
+}
 
 # -----------------------
 # DAG
@@ -34,6 +42,7 @@ with DAG(
     start_date=pendulum.datetime(2024, 1, 1, tz="UTC"),
     schedule_interval=None,
     catchup=False,
+    default_args=default_args,
     tags=["energy", "ingestion"],
 ) as dag:
 
@@ -42,11 +51,13 @@ with DAG(
         os.makedirs(DATA_DIR, exist_ok=True)
         temp_path = LOCAL_PATH + ".tmp"
 
-        print(f"Downloading data from: {DATA_URL}")
+        logging.info(f"Downloading data from: {DATA_URL}")
         response = requests.get(DATA_URL, timeout=60)
 
         if response.status_code != 200:
-            raise Exception(f"Download failed with status {response.status_code}")
+            msg = f"Download failed with status {response.status_code}"
+            logging.error(msg)
+            raise Exception(msg)
 
         with open(temp_path, "wb") as f:
             f.write(response.content)
@@ -54,13 +65,13 @@ with DAG(
         # then rename
         os.replace(temp_path, LOCAL_PATH)
 
-        print(f"File saved to: {LOCAL_PATH}")
+        logging.info(f"File saved to: {LOCAL_PATH}")
 
     download_task = download_data()
 
     @task
     def clean_data():
-        print("Cleaning data...")
+        logging.info("Cleaning data started")
 
         df = pd.read_csv(LOCAL_PATH)
 
@@ -68,6 +79,8 @@ with DAG(
         # Basic cleaning
         # -----------------------
 
+        logging.info("Cleaning data...")
+        logging.info(f"Initial shape: {df.shape}")
         # 1. Drop completely empty columns
         df = df.dropna(axis=1, how="all")
 
@@ -94,13 +107,34 @@ with DAG(
         # Save cleaned file
         # -----------------------
         df.to_csv(CLEAN_PATH, index=False)
-
-        print(f"Cleaned file saved to: {CLEAN_PATH}")
+        logging.info(f"Final shape: {df.shape}")
+        logging.info(f"Columns: {list(df.columns)}")
+        logging.info(f"Cleaned file saved to: {CLEAN_PATH}")
 
         return CLEAN_PATH
     
     clean_task = clean_data()
 
+    # -----------------------
+    # Validate data
+    # -----------------------
+    @task
+    def validate_data(path):
+        df = pd.read_csv(path)
+
+        logging.info("Validating data...")
+        if df.empty:
+            logging.error("Dataset is empty")
+            raise ValueError("Dataset is empty")
+
+        if df["utc_timestamp"].isnull().any():
+            logging.error("Null timestamps found")
+            raise ValueError("Null timestamps found")
+        
+        logging.info("Validation passed")
+        return path
+    
+    validate_task = validate_data(clean_task)
     # -----------------------
     # Upload to GCS
     # -----------------------
@@ -123,9 +157,10 @@ with DAG(
         skip_leading_rows=1,
         write_disposition="WRITE_TRUNCATE",
         autodetect=True,
+        time_partitioning={"type": "DAY", "field": "utc_timestamp"},
         gcp_conn_id="google_cloud_default",
     )
     # -----------------------
     # Pipeline order
     # -----------------------
-    download_task >> clean_task >> upload_to_gcs >> load_to_bq
+    download_task >> clean_task >> validate_task >> upload_to_gcs >> load_to_bq
