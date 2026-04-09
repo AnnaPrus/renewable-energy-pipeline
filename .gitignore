@@ -1,35 +1,63 @@
-# -------------------
-# Data
-# -------------------
-data/*
-!data/.gitkeep
-
-# -------------------
-# Environment
-# -------------------
-.env
-
-# -------------------
+# -----------------------
 # Python
-# -------------------
+# -----------------------
 __pycache__/
 *.pyc
+*.pyo
+*.pyd
 
-# -------------------
-# Jupyter
-# -------------------
-.ipynb_checkpoints/
+# -----------------------
+# Environment
+# -----------------------
+.env
+.env.*
+venv/
+.venv/
 
-# -------------------
+# -----------------------
+# Airflow
+# -----------------------
+airflow/logs/
+airflow/*.db
+
+# -----------------------
 # dbt
-# -------------------
-dbt/energy_project/target/
-dbt/energy_project/dbt_packages/
-dbt/energy_project/logs/
+# -----------------------
+target/
+dbt_packages/
+logs/
+.dbt/
 
-# -------------------
-# OS / misc
-# -------------------
-.DS_Store
+# -----------------------
+# Data files (IMPORTANT)
+# -----------------------
+data/
+*.csv
+*.parquet
 
+# -----------------------
+# Credentials (CRITICAL - DO NOT COMMIT)
+# -----------------------
+gcp-credentials.json
 *.json
+
+# -----------------------
+# OS / Editor
+# -----------------------
+.DS_Store
+.vscode/
+.idea/
+
+# -----------------------
+# Notebooks
+# -----------------------
+*.ipynb_checkpoints
+
+# -----------------------
+# Terraform
+# -----------------------
+.terraform/
+terraform.tfstate*
+terraform.tfvars
+
+.user.yml

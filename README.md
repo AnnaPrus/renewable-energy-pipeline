@@ -10,6 +10,17 @@ To design and implement a scalable data pipeline that enables analysis of how re
 
 ---
 
+## 🚀 Key Results
+
+* Germany’s renewable share is **~2x higher** than Austria
+* Germany’s electricity demand is **~8x larger** than Austria
+* Peak demand occurs in the **morning (08:00–10:00)**
+* Renewable generation peaks at **midday**, creating a **supply-demand mismatch**
+
+This highlights a key challenge in energy systems: aligning renewable production with consumption patterns.
+
+---
+
 ## 📚 Table of Contents
 
 - [Overview](#-overview)  
@@ -37,19 +48,22 @@ This project aims to answer:
 ## 🏗️ Architecture
 The pipeline follows a modern data engineering architecture with clear separation of responsibilities between orchestration, storage, and transformation layers:
 
+```text
 External Data Source (CSV)
         ↓
 Airflow (Ingestion & Orchestration)
         ↓
-Google Cloud Storage (Data Lake - Raw Layer)
+Google Cloud Storage (Raw Layer)
         ↓
 BigQuery (Raw Tables)
         ↓
-dbt (Staging & Transformations)
+dbt (Transformations)
         ↓
 BigQuery (Analytics Tables)
         ↓
 Looker Studio (Visualization)
+```
+
 
 ---
 
@@ -79,8 +93,7 @@ Looker Studio (Visualization)
    - Create new features (hour, day, renewable share)
 
 3. **Storage**
-   - Convert to Parquet
-   - Load into BigQuery
+   - Load cleaned CSV into BigQuery
 
 4. **Analysis**
    - Aggregate daily metrics
@@ -137,16 +150,127 @@ renewable-energy-pipeline/
 
 ## 📊 Expected Output
 
-- Cleaned Parquet datasets  
+- Cleaned datasets  
 - Aggregated energy metrics  
 - BigQuery tables  
-- Interactive dashboard  
+- Dashboard  
 
 ---
 
-## 🚀 Future Improvements
+## 📊 Data Exploration & Insights
 
-- Add weather data integration  
-- Implement real-time data ingestion  
-- Improve data quality checks  
-- Add anomaly detection  
+After building the pipeline, the data is available in BigQuery and can be queried using SQL.
+
+### 🔎 Example Queries
+
+**1. Average Renewable Share by Country**
+
+```sql
+select
+  country,
+  avg(renewable_share) as avg_renewable_share
+from energy_pipeline_dataset.energy_metrics
+group by country
+order by avg_renewable_share desc;
+```
+
+### 🔍 Renewable Energy Comparison
+
+Germany shows a significantly higher reliance on renewable energy compared to Austria.
+
+* Germany: ~25% of total load covered by renewables
+* Austria: ~12% of total load covered by renewables
+
+This indicates that Germany's energy system is more dependent on renewable sources such as wind and solar.
+
+---
+
+**2. Energy Demand Comparison**
+
+```sql
+select
+  country,
+  avg(load) as avg_load
+from energy_pipeline_dataset.energy_metrics
+group by country
+```
+
+### ⚡ Energy Demand Comparison
+
+Germany's electricity demand is substantially higher than Austria's.
+
+* Germany: ~55,000 average load
+* Austria: ~7,000 average load
+
+This represents nearly an 8x difference, reflecting the scale of Germany's energy consumption and infrastructure.
+
+---
+
+**3. Peak Load Periods**
+
+```sql
+select
+  extract(hour from utc_timestamp) as hour,
+  avg(load) as avg_load
+from energy_pipeline_dataset.energy_metrics
+group by hour
+order by hour
+```
+
+### ⏱️ Daily Demand Patterns
+
+Electricity demand exhibits a consistent daily cycle:
+
+* **Nighttime (00:00–04:00):** Lowest demand levels
+* **Morning (05:00–10:00):** Rapid increase, peaking around 09:00–10:00
+* **Midday (11:00–15:00):** Gradual decline in demand
+* **Late Afternoon (16:00–18:00):** Secondary increase
+* **Evening/Night (19:00–23:00):** Steady decrease
+
+This pattern reflects human activity cycles, including residential usage in the morning and industrial/commercial demand throughout the day.
+
+---
+
+## 📈 Visual Analysis
+
+The following charts provide a visual representation of energy demand patterns and renewable generation behavior across countries.
+
+### 🌱 Renewable Energy Share by Country
+
+![Renewable Share](images/renewable_share.png)
+
+### ⚡ Germany: Demand vs Renewable Generation
+
+![Germany Load](images/germany_load.png)
+
+### ⚡ Austria: Demand vs Renewable Generation
+
+![Austria Load](images/austria_load.png)
+
+### 🔍 Cross-Country Comparison
+
+Both Germany and Austria demonstrate similar daily energy patterns:
+
+* Demand peaks in the **morning**
+* Renewable generation peaks at **midday**
+
+However, key differences exist:
+
+* Germany operates at a much larger scale of consumption
+* Austria shows a relatively closer alignment between renewable supply and demand
+* In both countries, renewable generation does not fully coincide with peak demand
+
+## 🧠 Conclusion
+
+This project demonstrates how modern data engineering tools can be used to transform raw energy data into actionable insights.
+
+The analysis reveals a structural challenge in renewable energy systems:
+while renewable generation is increasing, it does not yet fully align with peak demand periods.
+
+This highlights the importance of:
+
+* energy storage solutions
+* flexible grid systems
+* diversified energy sources
+
+The pipeline provides a scalable foundation for further energy analytics and real-time monitoring.
