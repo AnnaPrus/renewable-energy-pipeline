@@ -1,10 +1,12 @@
 # Renewable Energy Data Pipeline
 
+<a id="overview"></a>
 ## 📌 Overview
 This project builds an end-to-end data pipeline to process, clean, and analyze European electricity demand and renewable energy production data. The pipeline transforms raw, messy time-series data into structured datasets for analysis and visualization.
 
 ---
 
+<a id="goal"></a>
 ## 🎯 Goal
 To design and implement a scalable data pipeline that enables analysis of how renewable energy (wind & solar) impacts electricity demand patterns across Europe.
 
@@ -27,17 +29,18 @@ This highlights a key challenge in energy systems: aligning renewable production
 - [Goal](#goal)  
 - [Problem Statement](#problem-statement)  
 - [Architecture](#architecture)  
-- [Data Modeling](#data-modeling-partitioning--clustering)  
+- [Data Modeling](#data-modeling)  
 - [Tech Stack](#tech-stack)  
 - [Pipeline Steps](#pipeline-steps)  
 - [Reproducibility](#reproducibility)
 - [Project Structure](#project-structure)  
-- [Data Exploration & Insights](#data-exploration--insights)
+- [Data Exploration & Insights](#data-exploration-insights)
 - [Visual Analysis](#visual-analysis)
 - [Conclusion](#conclusion)  
 
 ---
 
+<a id="problem-statement"></a>
 ## ❓ Problem Statement
 This project aims to answer:
 
@@ -48,6 +51,7 @@ This project aims to answer:
 
 ---
 
+<a id="architecture"></a>
 ## 🏗️ Architecture
 The pipeline follows a modern data engineering architecture with clear separation of responsibilities between orchestration, storage, and transformation layers:
 
@@ -69,6 +73,7 @@ Looker Studio (Visualization)
 
 ---
 
+<a id="data-modeling"></a>
 ## 🧩 Data Modeling (Partitioning & Clustering)
 
 To optimize query performance and reduce costs in BigQuery, tables are designed using partitioning and clustering strategies aligned with common query patterns.
@@ -107,6 +112,7 @@ This design enables:
 - Reduced data scanning and cost in BigQuery
 ---
 
+<a id="tech-stack"></a>
 ## ⚙️ Tech Stack
 
 - **Orchestration:** Apache Airflow  
@@ -120,6 +126,7 @@ This design enables:
 
 ---
 
+<a id="pipeline-steps"></a>
 ## 🔄 Pipeline Steps
 
 1. **Ingestion**
@@ -145,6 +152,7 @@ This design enables:
 
 ---
 
+<a id="reproducibility"></a>
 ## 🔁 Reproducibility
 
 This section explains how to run the project from scratch and reproduce the pipeline locally.
@@ -253,6 +261,7 @@ Once the pipeline and dbt models finish successfully, you can:
 
 ---
 
+<a id="project-structure"></a>
 ## 📂 Project Structure
 ```text
 renewable-energy-pipeline/
@@ -296,6 +305,7 @@ renewable-energy-pipeline/
 ```
 ---
 
+<a id="data-exploration-insights"></a>
 ## 📊 Data Exploration & Insights
 
 After building the pipeline, the data is available in BigQuery and can be queried using SQL.
@@ -370,6 +380,7 @@ This pattern reflects human activity cycles, including residential usage in the 
 
 ---
 
+<a id="visual-analysis"></a>
 ## 📈 Visual Analysis
 
 The following charts provide a visual representation of energy demand patterns and renewable generation behavior across countries.
@@ -399,6 +410,7 @@ However, key differences exist:
 * Austria shows a relatively closer alignment between renewable supply and demand
 * In both countries, renewable generation does not fully coincide with peak demand
 
+<a id="conclusion"></a>
 ## 🧠 Conclusion
 
 This project demonstrates how modern data engineering tools can be used to transform raw energy data into actionable insights.
