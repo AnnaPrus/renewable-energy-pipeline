@@ -33,9 +33,9 @@ This highlights a key challenge in energy systems: aligning renewable production
 - [Tech Stack](#tech-stack)  
 - [Pipeline Steps](#pipeline-steps)  
 - [Reproducibility](#reproducibility)
+- [Dashboard](#dashboard)
 - [Project Structure](#project-structure)  
 - [Data Exploration & Insights](#data-exploration-insights)
-- [Visual Analysis](#visual-analysis)
 - [Conclusion](#conclusion)  
 
 ---
@@ -53,7 +53,7 @@ This project aims to answer:
 
 <a id="architecture"></a>
 ## 🏗️ Architecture
-The pipeline follows a modern data engineering architecture with clear separation of responsibilities between orchestration, storage, and transformation layers:
+The pipeline follows a modern data engineering architecture with clear separation of reuild dashboard in Looker Studsponsibilities between orchestration, storage, and transformation layers:
 
 ```text
 External Data Source (CSV)
@@ -188,7 +188,15 @@ By default, the container expects credentials at:
 
 ### 3. Create the required GCP resources
 
-Before running the DAG, make sure these resources already exist:
+This project uses Terraform as Infrastructure as Code to provision the required cloud resources:
+
+```bash
+cd terraform
+terraform init
+terraform apply
+```
+
+Terraform creates:
 
 - GCS bucket: `energy-pipeline-bucket`
 - BigQuery dataset: `energy_pipeline_dataset`
@@ -198,6 +206,12 @@ If you want to use different names, set them in Airflow Variables:
 - `gcp_bucket`
 - `gcp_project`
 - `bq_dataset`
+
+After provisioning, return to the project root:
+
+```bash
+cd ..
+```
 
 ### 4. Start Airflow with Docker
 
@@ -235,7 +249,15 @@ If you change the raw BigQuery table definition, for example partitioning or clu
 
 ### 6. Run dbt models
 
-After the raw table is loaded into BigQuery, configure your local dbt BigQuery profile, then run the models from the dbt project directory:
+After the raw table is loaded into BigQuery, configure your local dbt BigQuery profile, then run the models from the dbt project directory.
+
+Your local dbt profile should point to the same:
+
+- GCP project
+- BigQuery dataset
+- authentication method used for your Google credentials
+
+Then run:
 
 ```bash
 cd dbt/energy_project
@@ -258,6 +280,49 @@ Once the pipeline and dbt models finish successfully, you can:
 - The raw BigQuery table is partitioned by `utc_timestamp` and clustered by `hour_of_day` and `day_of_week`
 - A valid dbt BigQuery profile is required to run the dbt models locally
 - The project depends on access to Google Cloud resources; without valid credentials, GCS and BigQuery tasks will fail
+
+---
+
+<a id="dashboard"></a>
+## 📋 Dashboard
+
+The final analytics layer is designed for dashboarding in Looker Studio.
+
+The dashboard contains multiple visual tiles, including:
+
+- renewable share comparison by country
+- Germany demand vs renewable generation
+- Austria demand vs renewable generation
+
+## Live Dashboard
+[View Dashboard](https://lookerstudio.google.com/reporting/f24296a9-7663-40e4-ba54-739a4ee1f5e8)
+
+These views support the key analytical questions in the problem statement and go beyond a single-chart output.
+
+### 🌱 Renewable Energy Share by Country
+
+![Renewable Share](images/renewable_share.png)
+
+### ⚡ Germany: Demand vs Renewable Generation
+
+![Germany Load](images/germany_load.png)
+
+### ⚡ Austria: Demand vs Renewable Generation
+
+![Austria Load](images/austria_load.png)
+
+### 🔍 Cross-Country Comparison
+
+Both Germany and Austria demonstrate similar daily energy patterns:
+
+* Demand peaks in the **morning**
+* Renewable generation peaks at **midday**
+
+However, key differences exist:
+
+* Germany operates at a much larger scale of consumption
+* Austria shows a relatively closer alignment between renewable supply and demand
+* In both countries, renewable generation does not fully coincide with peak demand
 
 ---
 
@@ -393,36 +458,6 @@ The project also addresses the question of how clean and reliable the source dat
 These checks do not guarantee perfect source data, but they provide confidence that the transformed dataset is structurally consistent and analytically usable.
 
 ---
-
-<a id="visual-analysis"></a>
-## 📈 Visual Analysis
-
-The following charts provide a visual representation of energy demand patterns and renewable generation behavior across countries.
-
-### 🌱 Renewable Energy Share by Country
-
-![Renewable Share](images/renewable_share.png)
-
-### ⚡ Germany: Demand vs Renewable Generation
-
-![Germany Load](images/germany_load.png)
-
-### ⚡ Austria: Demand vs Renewable Generation
-
-![Austria Load](images/austria_load.png)
-
-### 🔍 Cross-Country Comparison
-
-Both Germany and Austria demonstrate similar daily energy patterns:
-
-* Demand peaks in the **morning**
-* Renewable generation peaks at **midday**
-
-However, key differences exist:
-
-* Germany operates at a much larger scale of consumption
-* Austria shows a relatively closer alignment between renewable supply and demand
-* In both countries, renewable generation does not fully coincide with peak demand
 
 <a id="conclusion"></a>
 ## 🧠 Conclusion
