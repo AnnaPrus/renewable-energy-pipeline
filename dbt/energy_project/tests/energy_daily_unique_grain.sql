@@ -1,0 +1,7 @@
+select
+    date,
+    country,
+    count(*) as row_count
+from {{ ref('energy_daily') }}
+group by 1, 2
+having count(*) > 1

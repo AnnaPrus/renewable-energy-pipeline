@@ -9,8 +9,8 @@ model-paths: ["models"]
 models:
   energy_project:
     staging:
-      materialized: view
+      +materialized: view
     intermediate:
-      materialized: view
+      +materialized: view
     marts:
-      materialized: table
+      +materialized: table

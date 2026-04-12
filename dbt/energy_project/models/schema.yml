@@ -1,0 +1,115 @@
+version: 2
+
+sources:
+  - name: energy
+    database: energy-pipeline-492713
+    schema: energy_pipeline_dataset
+    tables:
+      - name: energy_clean
+        description: Raw energy data loaded from BigQuery by Airflow.
+        columns:
+          - name: utc_timestamp
+            description: Timestamp of the hourly energy observation.
+            tests:
+              - not_null
+
+models:
+  - name: stg_energy
+    description: Clean staging model with Germany and Austria load, solar, and wind metrics.
+    columns:
+      - name: utc_timestamp
+        description: Timestamp of the energy record.
+        tests:
+          - not_null
+      - name: load_de
+        description: Germany electricity load.
+      - name: solar_de
+        description: Germany solar generation.
+      - name: wind_de
+        description: Germany wind generation.
+      - name: load_at
+        description: Austria electricity load.
+      - name: solar_at
+        description: Austria solar generation.
+      - name: wind_at
+        description: Austria wind generation.
+
+  - name: energy_long
+    description: Unpivoted energy model with one metric per row and country.
+    columns:
+      - name: utc_timestamp
+        description: Timestamp of the energy record.
+        tests:
+          - not_null
+      - name: country
+        description: Country code.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['DE', 'AT']
+      - name: metric
+        description: Energy metric type.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['load', 'solar', 'wind']
+      - name: value
+        description: Numeric value for the metric.
+        tests:
+          - not_null
+
+  - name: energy_metrics
+    description: Country-level hourly energy metrics and renewable share calculations.
+    columns:
+      - name: utc_timestamp
+        description: Timestamp of the energy record.
+        tests:
+          - not_null
+      - name: country
+        description: Country code.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['DE', 'AT']
+      - name: load
+        description: Electricity load.
+        tests:
+          - not_null
+      - name: renewable_generation
+        description: Combined solar and wind generation.
+      - name: renewable_share
+        description: Share of load covered by renewable generation.
+      - name: is_renewable_dominant
+        description: Flag showing whether renewable generation is at least as large as load.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+      - name: is_peak_load
+        description: Flag showing whether load is above the country average.
+        tests:
+          - not_null
+          - accepted_values:
+              values: [0, 1]
+              quote: false
+
+  - name: energy_daily
+    description: Daily aggregated energy metrics by country.
+    columns:
+      - name: date
+        description: Daily grain of the aggregated metrics.
+        tests:
+          - not_null
+      - name: country
+        description: Country code.
+        tests:
+          - not_null
+          - accepted_values:
+              values: ['DE', 'AT']
+      - name: avg_load
+        description: Average daily load.
+      - name: avg_renewable_generation
+        description: Average daily renewable generation.
+      - name: avg_renewable_share
+        description: Average daily renewable share.
