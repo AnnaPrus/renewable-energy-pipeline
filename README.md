@@ -23,16 +23,18 @@ This highlights a key challenge in energy systems: aligning renewable production
 
 ## 📚 Table of Contents
 
-- [Overview](#-overview)  
-- [Goal](#-goal)  
-- [Problem Statement](#-problem-statement)  
-- [Architecture](#-architecture)  
-- [Tech Stack](#-tech-stack)  
-- [Pipeline Steps](#-pipeline-steps)  
-- [Reproducibility](#-reproducibility)
-- [Project Structure](#-project-structure)  
-- [Expected Output](#-expected-output)  
-- [Conclusion](#-conclusion)  
+- [Overview](#overview)  
+- [Goal](#goal)  
+- [Problem Statement](#problem-statement)  
+- [Architecture](#architecture)  
+- [Data Modeling](#data-modeling-partitioning--clustering)  
+- [Tech Stack](#tech-stack)  
+- [Pipeline Steps](#pipeline-steps)  
+- [Reproducibility](#reproducibility)
+- [Project Structure](#project-structure)  
+- [Data Exploration & Insights](#data-exploration--insights)
+- [Visual Analysis](#visual-analysis)
+- [Conclusion](#conclusion)  
 
 ---
 
@@ -292,15 +294,6 @@ renewable-energy-pipeline/
 ├── .env                                # Local environment variables
 └── README.md
 ```
----
-
-## 📊 Expected Output
-
-- Cleaned datasets  
-- Aggregated energy metrics  
-- BigQuery tables  
-- Dashboard  
-
 ---
 
 ## 📊 Data Exploration & Insights
