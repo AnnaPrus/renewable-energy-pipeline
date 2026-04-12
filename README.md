@@ -140,7 +140,7 @@ This design enables:
    - Create clustering-friendly time features (`hour_of_day`, `day_of_week`)
 
 3. **Storage**
-   - Load cleaned CSV into BigQuery
+   - Load cleaned CSV into BigQuery using batch upload
 
 4. **Analysis**
    - Aggregate daily metrics
@@ -229,7 +229,7 @@ The DAG will:
 - Download the OPSD time series dataset
 - Clean and validate the data
 - Upload the cleaned CSV to GCS
-- Load the cleaned data into BigQuery
+- Load the cleaned data into BigQuery using batch processing (not streaming)
 
 If you change the raw BigQuery table definition, for example partitioning or clustering fields, delete the existing `energy_clean` table before rerunning the DAG so BigQuery can recreate it with the new layout.
 
@@ -275,7 +275,7 @@ renewable-energy-pipeline/
 │       ├── models/
 │       │   ├── staging/
 │       │   │   ├── stg_energy.sql      # Cleaned staging model
-│       │   │   └── scheme.yml
+│       │   │   └── schema.yml
 │       │   ├── intermediate/
 │       │   │   └── energy_long.sql
 │       │   └── marts/
@@ -283,6 +283,7 @@ renewable-energy-pipeline/
 │       │       └── energy_metrics.sql  # Aggregated metrics
 │
 │       ├── dbt_project.yml
+│       ├── tests/                      # Custom dbt data tests
 │       └── target/                     # dbt build artifacts
 │
 ├── src/
@@ -377,6 +378,19 @@ Electricity demand exhibits a consistent daily cycle:
 * **Evening/Night (19:00–23:00):** Steady decrease
 
 This pattern reflects human activity cycles, including residential usage in the morning and industrial/commercial demand throughout the day.
+
+---
+
+### ✅ Data Quality Findings
+
+The project also addresses the question of how clean and reliable the source data is.
+
+- Rows with invalid or missing timestamps are removed during ingestion
+- Completely empty columns are dropped before loading to BigQuery
+- Airflow validation checks ensure the dataset is not empty and that timestamps are present
+- dbt tests validate model grain, accepted values, non-negative energy values, and calculation consistency
+
+These checks do not guarantee perfect source data, but they provide confidence that the transformed dataset is structurally consistent and analytically usable.
 
 ---
 
