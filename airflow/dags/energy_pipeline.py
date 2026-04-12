@@ -40,7 +40,7 @@ default_args = {
 with DAG(
     dag_id="renewable_energy_pipeline",
     start_date=pendulum.datetime(2024, 1, 1, tz="UTC"),
-    schedule_interval=None,
+    schedule_interval="@daily",
     catchup=False,
     default_args=default_args,
     tags=["energy", "ingestion"],
@@ -90,9 +90,16 @@ with DAG(
         # 3. Drop rows without timestamp
         df = df.dropna(subset=["utc_timestamp"])
 
-        # 4. Limit columns (IMPORTANT for BigQuery)
+        # 4. Add BigQuery-friendly clustering fields.
+        # BigQuery does not support clustering on FLOAT columns.
+        df["hour_of_day"] = df["utc_timestamp"].dt.hour
+        df["day_of_week"] = df["utc_timestamp"].dt.dayofweek
+
+        # 5. Limit columns (IMPORTANT for BigQuery)
         selected_cols = [
             "utc_timestamp",
+            "hour_of_day",
+            "day_of_week",
             "DE_load_actual_entsoe_transparency",
             "DE_solar_generation_actual",
             "DE_wind_onshore_generation_actual",
@@ -158,6 +165,7 @@ with DAG(
         write_disposition="WRITE_TRUNCATE",
         autodetect=True,
         time_partitioning={"type": "DAY", "field": "utc_timestamp"},
+        cluster_fields=["hour_of_day", "day_of_week"],
         gcp_conn_id="google_cloud_default",
     )
     # -----------------------

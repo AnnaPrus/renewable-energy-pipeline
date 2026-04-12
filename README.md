@@ -29,9 +29,10 @@ This highlights a key challenge in energy systems: aligning renewable production
 - [Architecture](#-architecture)  
 - [Tech Stack](#-tech-stack)  
 - [Pipeline Steps](#-pipeline-steps)  
+- [Reproducibility](#-reproducibility)
 - [Project Structure](#-project-structure)  
 - [Expected Output](#-expected-output)  
-- [Future Improvements](#-future-improvements)  
+- [Conclusion](#-conclusion)  
 
 ---
 
@@ -64,7 +65,44 @@ BigQuery (Analytics Tables)
 Looker Studio (Visualization)
 ```
 
+---
 
+## 🧩 Data Modeling (Partitioning & Clustering)
+
+To optimize query performance and reduce costs in BigQuery, tables are designed using partitioning and clustering strategies aligned with common query patterns.
+
+### 📅 Partitioning
+
+The main table (`energy_clean`) is partitioned by:
+
+- `utc_timestamp` (daily partitioning)
+
+**Why?**
+
+- Most queries filter data by time ranges (e.g. daily, hourly analysis)
+- Partitioning ensures only relevant data is scanned
+- Reduces query cost and improves performance
+
+### 🔀 Clustering
+
+The table is clustered by:
+
+- `hour_of_day`
+- `day_of_week`
+
+**Why?**
+
+- BigQuery does not support clustering on `FLOAT` energy-measure columns
+- Time-based analysis is a core use case in this project
+- Clustering by hour and weekday improves performance for repeated temporal aggregations
+
+### 🎯 Result
+
+This design enables:
+
+- Efficient time-based filtering
+- Faster aggregations on energy metrics
+- Reduced data scanning and cost in BigQuery
 ---
 
 ## ⚙️ Tech Stack
@@ -90,7 +128,7 @@ Looker Studio (Visualization)
    - Clean missing values
    - Standardize timestamps
    - Select relevant features (demand, wind, solar)
-   - Create new features (hour, day, renewable share)
+   - Create clustering-friendly time features (`hour_of_day`, `day_of_week`)
 
 3. **Storage**
    - Load cleaned CSV into BigQuery
@@ -102,6 +140,114 @@ Looker Studio (Visualization)
 
 5. **Visualization**
    - Build dashboard in Looker Studio
+
+---
+
+## 🔁 Reproducibility
+
+This section explains how to run the project from scratch and reproduce the pipeline locally.
+
+### Prerequisites
+
+- Docker and Docker Compose
+- A Google Cloud project
+- A GCS bucket for raw data
+- A BigQuery dataset for warehouse tables
+- Google Cloud application default credentials on your machine
+
+### 1. Clone the repository
+
+```bash
+git clone <your-repo-url>
+cd renewable-energy-pipeline
+```
+
+### 2. Authenticate with Google Cloud
+
+This project mounts your local Google credentials into the Airflow container:
+
+```bash
+gcloud auth application-default login
+```
+
+By default, the container expects credentials at:
+
+```text
+~/.config/gcloud/application_default_credentials.json
+```
+
+### 3. Create the required GCP resources
+
+Before running the DAG, make sure these resources already exist:
+
+- GCS bucket: `energy-pipeline-bucket`
+- BigQuery dataset: `energy_pipeline_dataset`
+
+If you want to use different names, set them in Airflow Variables:
+
+- `gcp_bucket`
+- `gcp_project`
+- `bq_dataset`
+
+### 4. Start Airflow with Docker
+
+```bash
+docker compose up -d
+```
+
+Airflow UI will be available at:
+
+```text
+http://localhost:8080
+```
+
+Default login:
+
+- Username: `admin`
+- Password: `admin`
+
+### 5. Trigger the pipeline
+
+In the Airflow UI:
+
+1. Open the DAG `renewable_energy_pipeline`
+2. Turn the DAG on
+3. Trigger a run manually
+
+The DAG will:
+
+- Download the OPSD time series dataset
+- Clean and validate the data
+- Upload the cleaned CSV to GCS
+- Load the cleaned data into BigQuery
+
+If you change the raw BigQuery table definition, for example partitioning or clustering fields, delete the existing `energy_clean` table before rerunning the DAG so BigQuery can recreate it with the new layout.
+
+### 6. Run dbt models
+
+After the raw table is loaded into BigQuery, configure your local dbt BigQuery profile, then run the models from the dbt project directory:
+
+```bash
+cd dbt/energy_project
+dbt run
+dbt test
+```
+
+### 7. Reproduce the analysis
+
+Once the pipeline and dbt models finish successfully, you can:
+
+- Query the mart tables in BigQuery
+- Recreate the SQL analyses shown below
+- Rebuild the charts in `images/`
+
+### Notes
+
+- The Airflow DAG is defined in `airflow/dags/energy_pipeline.py`
+- The Docker setup is intentionally minimal and currently runs Airflow in standalone mode
+- The raw BigQuery table is partitioned by `utc_timestamp` and clustered by `hour_of_day` and `day_of_week`
+- A valid dbt BigQuery profile is required to run the dbt models locally
+- The project depends on access to Google Cloud resources; without valid credentials, GCS and BigQuery tasks will fail
 
 ---
 
@@ -117,22 +263,23 @@ renewable-energy-pipeline/
 │   └── energy_project/
 │       ├── models/
 │       │   ├── staging/
-│       │   │   └── stg_energy.sql      # Cleaned raw data
+│       │   │   ├── stg_energy.sql      # Cleaned staging model
+│       │   │   └── scheme.yml
+│       │   ├── intermediate/
+│       │   │   └── energy_long.sql
 │       │   └── marts/
+│       │       ├── energy_daily.sql
 │       │       └── energy_metrics.sql  # Aggregated metrics
-│       │
-│       ├── seeds/                      # Optional static data
-│       ├── tests/                      # dbt tests
+│
 │       ├── dbt_project.yml
-│       └── profiles.yml
+│       └── target/                     # dbt build artifacts
 │
 ├── src/
 │   ├── ingest.py                       # Data download logic
-│   ├── validate.py                     # Data validation checks
-│   └── utils.py                        # Helper functions
 │
 ├── terraform/
 │   ├── main.tf                         # GCP resources (GCS, BigQuery)
+│   ├── terraform.tfvars
 │   └── variables.tf
 │
 ├── docker/
@@ -142,8 +289,7 @@ renewable-energy-pipeline/
 │   └── exploration.ipynb               # EDA (not part of pipeline)
 │
 ├── docker-compose.yaml                 # Orchestration (Airflow, dbt, etc.)
-├── requirements.txt                    # Python dependencies
-├── .env                                # Environment variables (not committed)
+├── .env                                # Local environment variables
 └── README.md
 ```
 ---
