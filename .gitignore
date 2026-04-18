@@ -58,6 +58,7 @@ gcp-credentials.json
 # -----------------------
 .terraform/
 terraform.tfstate*
+terraform.tfstate.backup
 terraform.tfvars
 
 .user.yml

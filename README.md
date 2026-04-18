@@ -1,5 +1,9 @@
 # Renewable Energy Data Pipeline
 
+Python | Airflow | dbt | BigQuery | Terraform | Docker | GCP
+
+Production-style ELT pipeline processing European energy data with Airflow, GCP, BigQuery, dbt, Docker, Terraform.
+
 <a id="overview"></a>
 ## 📌 Overview
 This project builds an end-to-end data pipeline to process, clean, and analyze European electricity demand and renewable energy production data. The pipeline transforms raw, messy time-series data into structured datasets for analysis and visualization.
@@ -53,7 +57,7 @@ This project aims to answer:
 
 <a id="architecture"></a>
 ## 🏗️ Architecture
-The pipeline follows a modern data engineering architecture with clear separation of reuild dashboard in Looker Studsponsibilities between orchestration, storage, and transformation layers:
+The pipeline follows a modern data engineering architecture with clear separation of responsibilities between orchestration, storage, transformation, and visualization layers.
 
 ```text
 External Data Source (CSV)
@@ -161,9 +165,15 @@ This section explains how to run the project from scratch and reproduce the pipe
 
 - Docker and Docker Compose
 - A Google Cloud project
-- A GCS bucket for raw data
-- A BigQuery dataset for warehouse tables
-- Google Cloud application default credentials on your machine
+- Terraform
+- Google Cloud SDK (gcloud)
+
+### Quick Start
+1. Authenticate
+2. Terraform apply
+3. docker compose up
+4. Trigger DAG
+5. dbt run
 
 ### 1. Clone the repository
 
@@ -174,26 +184,23 @@ cd renewable-energy-pipeline
 
 ### 2. Authenticate with Google Cloud
 
-This project mounts your local Google credentials into the Airflow container:
+This project mounts your local Google credentials into the Airflow container automatically:
 
 ```bash
-gcloud auth application-default login
+gcloud auth application-default login 
+gcloud config set project YOUR_PROJECT_ID
 ```
 
-By default, the container expects credentials at:
-
-```text
-~/.config/gcloud/application_default_credentials.json
-```
-
-### 3. Create the required GCP resources
+### 3. Provision infrastructure with Terraform
 
 This project uses Terraform as Infrastructure as Code to provision the required cloud resources:
 
 ```bash
 cd terraform
+cp terraform.tfvars.example terraform.tfvars
 terraform init
 terraform apply
+cd ..
 ```
 
 Terraform creates:
@@ -201,17 +208,11 @@ Terraform creates:
 - GCS bucket: `energy-pipeline-bucket`
 - BigQuery dataset: `energy_pipeline_dataset`
 
-If you want to use different names, set them in Airflow Variables:
+If you want to use different names, update terraform.tfvars and the Airflow Variables:
 
 - `gcp_bucket`
 - `gcp_project`
 - `bq_dataset`
-
-After provisioning, return to the project root:
-
-```bash
-cd ..
-```
 
 ### 4. Start Airflow with Docker
 
@@ -348,9 +349,8 @@ renewable-energy-pipeline/
 │       │       └── energy_metrics.sql  # Aggregated metrics
 │
 │       ├── dbt_project.yml
-│       ├── tests/                      # Custom dbt data tests
-│       └── target/                     # dbt build artifacts
-│
+│       └── tests/                      # Custom dbt data tests
+│      
 ├── src/
 │   ├── ingest.py                       # Data download logic
 │
